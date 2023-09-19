@@ -10,16 +10,14 @@ def dfa_minimal(regular_expr):
 
 def graph_to_nfa(graph, start=None, final=None):
     nfa = NondeterministicFiniteAutomaton()
-    if start is None:
-        for node in graph.nodes:
-            nfa.add_start_state(node)
-    else:
-        nfa.add_start_state(start)
-    if final is None:
-        for node in graph.nodes:
-            nfa.add_final_state(node)
-    else:
-        nfa.add_final_state(final)
+    start_nodes = graph.nodes if start is None else start
+    final_nodes = graph.nodes if final is None else final
+
+    for node in start_nodes:
+        nfa.add_start_state(node)
+
+    for node in final_nodes:
+        nfa.add_final_state(node)
 
     for start, final, data in graph.edges(data=True):
         nfa.add_transition(State(start), Symbol(data["label"]), State(final))
