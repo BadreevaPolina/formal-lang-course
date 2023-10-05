@@ -1,5 +1,12 @@
+from enum import Enum
+
 from scipy.sparse import dok_matrix, block_diag, identity, hstack
 from project.finite_automata import dfa_minimal, graph_to_nfa
+
+
+class ReachabilityOptions(Enum):
+    NOT_SEPARATE = False
+    SEPARATE = True
 
 
 def automaton_to_matrix(automaton):
@@ -16,10 +23,10 @@ def automaton_to_matrix(automaton):
     return matrix, start_indices, all_indices
 
 
-def find_reachable_states(graph, start_states, regex, separate=True):
+def find_reachable_states(graph, start_states, regex):
     reachable_states = []
 
-    for start_state in [start_states] if not separate else [[s] for s in start_states]:
+    for start_state in start_states:
         dfa_regex = dfa_minimal(regex)
         nfa_graph = graph_to_nfa(graph, start_state)
 
@@ -53,7 +60,7 @@ def find_reachable_states(graph, start_states, regex, separate=True):
             reachable, dfa_all_indices, nfa_all_indices, nfa_graph.states
         )
         reachable_states.append(final_states)
-    return reachable_states[0] if not separate else reachable_states
+    return reachable_states
 
 
 def combine_transition_matrices(automaton1, automaton2):
@@ -109,10 +116,25 @@ def find_final_states(reachable_matrix, dfa_all_indices, nfa_all_indices, nfa_st
     return final_states
 
 
-def query_reachable_states(graph, start, final, regex, separate):
-    reachable_states = find_reachable_states(graph, start, regex, separate)
-    result = [
-        {j for j in i if j in final}
-        for i in ([reachable_states] if not separate else reachable_states)
-    ]
-    return result[0] if not separate else result
+def query_reachable_states(
+    graph, start, final, regex, option=ReachabilityOptions.SEPARATE
+):
+    start_states = (
+        [[s] for s in start] if option == ReachabilityOptions.SEPARATE else [start]
+    )
+    reachable_states = find_reachable_states(graph, start_states, regex)
+    filtered_states = filter_reachable_states(reachable_states, final)
+    result = (
+        filtered_states
+        if option == ReachabilityOptions.SEPARATE
+        else filtered_states[0]
+    )
+    return result
+
+
+def filter_reachable_states(reachable_states, final):
+    result = []
+    for state_set in reachable_states:
+        filtered_state_set = {j for j in state_set if j in final}
+        result.append(filtered_state_set)
+    return result
