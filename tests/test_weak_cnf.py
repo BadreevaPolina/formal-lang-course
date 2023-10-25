@@ -7,7 +7,9 @@ from project.weak_cnf import to_weak_cnf, weak_cnf_from_file
 
 def are_equal(actual, expected):
     actual_set = {line.strip() for line in actual.splitlines() if line.strip() != ""}
-    expected_set = {line.strip() for line in expected.splitlines() if line.strip() != ""}
+    expected_set = {
+        line.strip() for line in expected.splitlines() if line.strip() != ""
+    }
     assert actual_set == expected_set
 
 
