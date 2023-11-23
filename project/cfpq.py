@@ -63,24 +63,6 @@ def hellings(graph, cfg):
     return triples_set
 
 
-def reachability_for_nodes_hellings(graph, cfg, start_nodes, final_nodes, nt_symbols):
-    result = {start_node: set() for start_node in start_nodes}
-    hell = hellings(graph, cfg)
-    for start_node, nt, final_node in hell:
-        if nt == nt_symbols and start_node in start_nodes and final_node in final_nodes:
-            result[start_node].add(final_node)
-    return result
-
-
-def from_text_hellings(graph, cfg):
-    return hellings(graph, CFG.from_text(cfg))
-
-
-def from_file_hellings(graph, filename):
-    with open(filename) as file:
-        return from_text_hellings(graph, file.read())
-
-
 def algorithm_matrix_based(matrices, var_productions):
     while True:
         unchanged_matrices = {var: mtrx.copy() for var, mtrx in matrices.items()}
@@ -129,19 +111,19 @@ def matrix_based(graph, cfg):
     return result
 
 
-def reachability_for_nodes_matrix(graph, cfg, start_nodes, final_nodes, nt_symbols):
+def reachability_for_nodes(graph, cfg, start_nodes, final_nodes, nt_symbols, algorithm):
     result = {start_node: set() for start_node in start_nodes}
-    mtrx = matrix_based(graph, cfg)
-    for start_node, nt, final_node in mtrx:
+    res_algo = algorithm(graph, cfg)
+    for start_node, nt, final_node in res_algo:
         if nt == nt_symbols and start_node in start_nodes and final_node in final_nodes:
             result[start_node].add(final_node)
     return result
 
 
-def from_text_matrix(graph, cfg):
-    return matrix_based(graph, CFG.from_text(cfg))
+def from_text(graph, cfg, algorithm):
+    return algorithm(graph, CFG.from_text(cfg))
 
 
-def from_file_matrix(graph, filename):
+def from_file(graph, filename, algorithm):
     with open(filename) as file:
-        return from_text_matrix(graph, file.read())
+        return from_text(graph, file.read(), algorithm)
